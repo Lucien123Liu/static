@@ -72,16 +72,84 @@
       <img class="img img04" src="./images/mmexport1667660780513.jpg" />
       <img class="img img05" src="./images/mmexport1667660783544.jpg" />
       <img class="img img06" src="./images/mmexport1667691877837.jpg" />
-      <img class="img img07" src="./images/mmexport1664549518756.jpg" />
+      <!-- <img class="img img07" src="./images/mmexport1664549518756.jpg" />
       <img class="img img08" src="./images/beauty_202210011622082292.jpg" />
-      <img class="img img09" src="./images/IMG_20220917_120257.jpg" />
+      <img class="img img09" src="./images/IMG_20220917_120257.jpg" /> -->
       <p></p>
     </div>
   </div>
   <script>
     const defaultXDeg = 346;
+    let lastDeg = 0;
     let rotateY = 0;
     let reqFrame;
+    let rotateObj = {
+      x: false,
+      y: false
+    }; // 用户可以鼠标交互的x或者y动不动的配置
+    // 平面带状效果
+    function cloth(pDom) {
+      let oImg = pDom.getElementsByClassName('img');
+      pDom.style.width = '160px';
+      pDom.style.height = '213px';
+      let oImgLength = oImg.length;
+      let Deg = 360 / oImgLength;
+      rotateObj.x = true;
+      rotateObj.y = false;
+
+      // 打开前初始化排列动画设置
+      for (let i = 0; i < oImgLength; i++) {
+        oImg[i].style.animation = 'none';
+        oImg[i].style.transform = 'rotateY(' + i * Deg + 'deg) translateZ(350px)';
+        oImg[i].style.transition = 'transform 1s ' + (oImgLength - 1 - i) * 0.1 + 's';
+      }
+    }
+    // 魔方效果
+    function cube(pDom) {
+      let oImg = pDom.getElementsByClassName('img');
+      pDom.style.width = pDom.style.height = '250px';
+      let oImgLength = oImg.length;
+      rotateObj.x = true;
+      rotateObj.y = true;
+      // 打开前初始化排列动画设置
+      for (let i = 0; i < 6; i++) {
+        switch (i) {
+          case 0:
+            oImg[i].style.transform = 'translateZ(75px)';
+            break;
+          case 1:
+            oImg[i].style.transform = 'translateX(-75px) rotateY(-90deg)';
+            break;
+          case 2:
+            oImg[i].style.transform = 'translateX(75px) rotateY(90deg)';
+            break;
+          case 3:
+            oImg[i].style.transform = 'translateY(-75px) rotateX(90deg)';
+            break;
+          case 4:
+            oImg[i].style.transform = 'translateY(75px) rotateX(-90deg)';
+            break;
+          case 5:
+            oImg[i].style.transform = 'translateZ(-75px)';
+            break;
+          default:
+            break;
+        }
+        oImg[i].style.transition = 'transform 1s ' + (oImgLength - 1 - i) * 0.1 + 's';
+        oImg[i].style['-webkit-box-reflect'] = 'inherit';
+      }
+    }
+    function animateFn(domObj) {
+      domObj.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + rotateY + 'deg)';
+      rotateY += 0.2;
+      if (rotateY > 360) {
+        rotateY = 0;
+      }
+      reqFrame = requestAnimationFrame && requestAnimationFrame(animateFn.bind(this, domObj));
+    }
+    function stopAnimate() {
+      cancelAnimationFrame && cancelAnimationFrame(reqFrame);
+    }
     window.onload = function () {
       const vendors = ['', 'webkit', 'ms', 'moz', 'o'];
 
@@ -101,32 +169,13 @@
         function (callback) {
           window.clearTimeout(callback)
         };
-      function animateFn() {
-        oWrap.style.transform = 'rotateX(' + defaultXDeg + 'deg) rotateY(' + rotateY + 'deg)';
-        rotateY += 0.2;
-        if (rotateY > 360) {
-          rotateY = 0;
-        }
-
-        reqFrame = requestAnimationFrame && requestAnimationFrame(animateFn);
-
-      }
-      function stopAnimate() {
-        cancelAnimationFrame && cancelAnimationFrame(reqFrame);
-      }
       let oWrap = document.getElementById('wrap');
-      let oImg = oWrap.getElementsByClassName('img');
-      let oImgLength = oImg.length;
-      let Deg = 360 / oImgLength;
+
       let nowX, nowY, lastX, lastY, minusX = 0, minusY = 0;
       let roY = 0, roX = -10;
       let timer;
-
-      for (let i = 0; i < oImgLength; i++) {
-        oImg[i].style.transform = 'rotateY(' + i * Deg + 'deg) translateZ(350px)';
-        oImg[i].style.transition = 'transform 1s ' + (oImgLength - 1 - i) * 0.1 + 's';
-
-      }
+      // cloth(oWrap);
+      cube(oWrap);
 
       mTop();
       window.addEventListener('resize', mTop)
@@ -136,7 +185,7 @@
         oWrap.style.marginTop = wH / 2 - 180 + 'px';
       }
 
-      animateFn();
+      // animateFn(oWrap);
       // 拖拽：三个事件-按下 移动 抬起
       //按下
       document.onmousedown = function (ev) {
@@ -162,10 +211,9 @@
 
           //更新wrap的旋转角度，拖拽越快-> minus变化大 -> roY变化大 -> 旋转快
           rotateY = roY += minusX * 0.2; // roY = roY + minusX*0.2;
-          roX -= minusY * 0.1;
+          lastDeg = roX -= minusY * 0.1;
 
-          oWrap.style.transform = 'rotateX(' + defaultXDeg + 'deg) rotateY(' + roY + 'deg)';
-          // oWrap.style.transform = 'rotateX(' + roX + 'deg) rotateY(' + roY + 'deg)';
+          oWrap.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + roY + 'deg)';
 
           /*
           //生成div，让div跟着鼠标动
@@ -187,13 +235,12 @@
             minusX *= 0.95;
             minusY *= 0.95;
             rotateY = roY += minusX * 0.2; // roY = roY + minusX*0.2;
-            roX -= minusY * 0.1;
-            oWrap.style.transform = 'rotateX(' + defaultXDeg + 'deg) rotateY(' + roY + 'deg)';
-            // oWrap.style.transform = 'rotateX(' + roX + 'deg) rotateY(' + roY + 'deg)';
+            lastDeg = roX -= minusY * 0.1;
+            oWrap.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + roY + 'deg)';
 
             if (Math.abs(minusX) < 0.1 && Math.abs(minusY) < 0.1) {
               clearInterval(timer);
-              animateFn();
+              animateFn(oWrap);
             }
             console.log(minusX);
           }, 13);
