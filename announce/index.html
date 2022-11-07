@@ -63,6 +63,23 @@
       margin-top: -600px;
       transform: rotateX(90deg);
     }
+    .heart {
+      font-size: 150px;
+      color: #e00;
+      transform-origin: center;
+      animation: beat .5s infinite alternate;
+      text-align: center;
+      transform: translate(-50%, -50%);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+
+    }
+    @keyframes beat{
+      to {
+        transform: scale(1.4) translate(-50%, -50%);
+      }
+    }
   </style>
   <div id="perspective">
     <div id="wrap">
@@ -77,9 +94,14 @@
       <img class="img img09" src="./images/IMG_20220917_120257.jpg" /> -->
       <p></p>
     </div>
+    <div class="heart">&#x2665;</div>
   </div>
   <script>
     const defaultXDeg = 346;
+    const animateType = {
+      cube: false,
+      cloth: false,
+    };
     let lastDeg = 0;
     let rotateY = 0;
     let reqFrame;
@@ -87,6 +109,14 @@
       x: false,
       y: false
     }; // 用户可以鼠标交互的x或者y动不动的配置
+    function setAnimateType(type) {
+      Object.keys(animateType).forEach(key => {
+        animateType[key] = false;
+      });
+      if (Object.prototype.hasOwnProperty.call(animateType, type)) {
+        animateType[type] = true;
+      }
+    }
     // 平面带状效果
     function cloth(pDom) {
       let oImg = pDom.getElementsByClassName('img');
@@ -103,6 +133,7 @@
         oImg[i].style.transform = 'rotateY(' + i * Deg + 'deg) translateZ(350px)';
         oImg[i].style.transition = 'transform 1s ' + (oImgLength - 1 - i) * 0.1 + 's';
       }
+      setAnimateType('cloth');
     }
     // 魔方效果
     function cube(pDom) {
@@ -115,22 +146,22 @@
       for (let i = 0; i < 6; i++) {
         switch (i) {
           case 0:
-            oImg[i].style.transform = 'translateZ(75px)';
+            oImg[i].style.transform = 'translateZ(250px)';
             break;
           case 1:
-            oImg[i].style.transform = 'translateX(-75px) rotateY(-90deg)';
+            oImg[i].style.transform = 'translateX(-250px) rotateY(-90deg)';
             break;
           case 2:
-            oImg[i].style.transform = 'translateX(75px) rotateY(90deg)';
+            oImg[i].style.transform = 'translateX(250px) rotateY(90deg)';
             break;
           case 3:
-            oImg[i].style.transform = 'translateY(-75px) rotateX(90deg)';
+            oImg[i].style.transform = 'translateY(-250px) rotateX(90deg)';
             break;
           case 4:
-            oImg[i].style.transform = 'translateY(75px) rotateX(-90deg)';
+            oImg[i].style.transform = 'translateY(250px) rotateX(-90deg)';
             break;
           case 5:
-            oImg[i].style.transform = 'translateZ(-75px)';
+            oImg[i].style.transform = 'translateZ(-250px)';
             break;
           default:
             break;
@@ -138,6 +169,7 @@
         oImg[i].style.transition = 'transform 1s ' + (oImgLength - 1 - i) * 0.1 + 's';
         oImg[i].style['-webkit-box-reflect'] = 'inherit';
       }
+      setAnimateType('cube');
     }
     function animateFn(domObj) {
       domObj.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + rotateY + 'deg)';
@@ -174,8 +206,8 @@
       let nowX, nowY, lastX, lastY, minusX = 0, minusY = 0;
       let roY = 0, roX = -10;
       let timer;
-      // cloth(oWrap);
-      cube(oWrap);
+      cloth(oWrap);
+      // cube(oWrap);
 
       mTop();
       window.addEventListener('resize', mTop)
