@@ -16,6 +16,7 @@
   <style>
     body,
     html {
+      font-size: 16px;
       margin: 0;
       padding: 0;
       height: 100%;
@@ -28,9 +29,9 @@
     }
 
     #wrap {
-      width: 160px;
+      width: 10rem /* 160/16 */;
       /*133:200  4:6  */
-      height: 213px;
+      height: 13.3125rem /* 213/16 */;
       margin: 0 auto;
       position: relative;
 
@@ -43,17 +44,17 @@
       width: 100%;
       height: 100%;
       position: absolute;
-      border-radius: 1px;
+      border-radius: .0625rem /* 1/16 */;
       background-color: #fcd;
-      transform: rotateY(0deg) translateZ(0px);
+      transform: rotateY(0deg) translateZ(0rem /* 0/16 */);
       /*倒影：朝向 偏移 遮盖*/
       /*线性渐变(从哪里开始,开始时候的颜色,结束时候的颜色)*/
-      -webkit-box-reflect: below 5px -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.5) 100%);
+      -webkit-box-reflect: below .3125rem /* 5/16 */ -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.5) 100%);
     }
 
     #wrap p {
-      width: 1200px;
-      height: 1200px;
+      width: 75rem /* 1200/16 */;
+      height: 75rem /* 1200/16 */;
       background: -webkit-radial-gradient(center center, 600px 600px, rgba(244, 23, 234, 0.2), rgba(0, 0, 0, 0));
       border-radius: 100%;
       position: absolute;
@@ -62,22 +63,23 @@
       margin-left: -600px;
       margin-top: -600px;
       transform: rotateX(90deg);
+      display: none;
     }
     .heart {
-      font-size: 150px;
+      font-size: 9.375rem /* 150/16 */;
       color: #e00;
       transform-origin: center;
-      animation: beat .5s infinite alternate;
+      animation: beat .34s infinite alternate;
       text-align: center;
       transform: translate(-50%, -50%);
       position: absolute;
       left: 50%;
-      top: 50%;
+      bottom: 0;
 
     }
     @keyframes beat{
       to {
-        transform: scale(1.4) translate(-50%, -50%);
+        transform: scale(1.1) translate(-50%, -50%);
       }
     }
   </style>
@@ -98,6 +100,8 @@
   </div>
   <script>
     const defaultXDeg = 346;
+    const intervalTime = 5000;
+    let lastTime = Date.now();
     const animateType = {
       cube: false,
       cloth: false,
@@ -120,8 +124,8 @@
     // 平面带状效果
     function cloth(pDom) {
       let oImg = pDom.getElementsByClassName('img');
-      pDom.style.width = '160px';
-      pDom.style.height = '213px';
+      pDom.style.width = '10rem';
+      pDom.style.height = '13.3125rem';
       let oImgLength = oImg.length;
       let Deg = 360 / oImgLength;
       rotateObj.x = true;
@@ -130,15 +134,16 @@
       // 打开前初始化排列动画设置
       for (let i = 0; i < oImgLength; i++) {
         oImg[i].style.animation = 'none';
-        oImg[i].style.transform = 'rotateY(' + i * Deg + 'deg) translateZ(350px)';
+        oImg[i].style.transform = 'rotateY(' + i * Deg + 'deg) translateZ(21.875rem)';
         oImg[i].style.transition = 'transform 1s ' + (oImgLength - 1 - i) * 0.1 + 's';
       }
       setAnimateType('cloth');
     }
     // 魔方效果
     function cube(pDom) {
+      const wH = 12
       let oImg = pDom.getElementsByClassName('img');
-      pDom.style.width = pDom.style.height = '250px';
+      pDom.style.width = pDom.style.height = wH + 'rem';
       let oImgLength = oImg.length;
       rotateObj.x = true;
       rotateObj.y = true;
@@ -146,22 +151,22 @@
       for (let i = 0; i < 6; i++) {
         switch (i) {
           case 0:
-            oImg[i].style.transform = 'translateZ(250px)';
+            oImg[i].style.transform = 'translateZ(' + wH / 2 + 'rem)';
             break;
           case 1:
-            oImg[i].style.transform = 'translateX(-250px) rotateY(-90deg)';
+            oImg[i].style.transform = 'translateX(-' + wH / 2 + 'rem) rotateY(-90deg)';
             break;
           case 2:
-            oImg[i].style.transform = 'translateX(250px) rotateY(90deg)';
+            oImg[i].style.transform = 'translateX(' + wH / 2 + 'rem) rotateY(90deg)';
             break;
           case 3:
-            oImg[i].style.transform = 'translateY(-250px) rotateX(90deg)';
+            oImg[i].style.transform = 'translateY(-' + wH / 2 + 'rem) rotateX(90deg)';
             break;
           case 4:
-            oImg[i].style.transform = 'translateY(250px) rotateX(-90deg)';
+            oImg[i].style.transform = 'translateY(' + wH / 2 + 'rem) rotateX(-90deg)';
             break;
           case 5:
-            oImg[i].style.transform = 'translateZ(-250px)';
+            oImg[i].style.transform = 'translateZ(-' + wH / 2 + 'rem)';
             break;
           default:
             break;
@@ -172,6 +177,14 @@
       setAnimateType('cube');
     }
     function animateFn(domObj) {
+      if (Date.now() - lastTime >= intervalTime) {
+        lastTime = Date.now();
+        if (animateType.cloth) {
+          cube(domObj);
+        } else if(animateType.cube) {
+          cloth(domObj);
+        }
+      }
       domObj.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + rotateY + 'deg)';
       rotateY += 0.2;
       if (rotateY > 360) {
@@ -183,8 +196,6 @@
       cancelAnimationFrame && cancelAnimationFrame(reqFrame);
     }
     window.onload = function () {
-      const vendors = ['', 'webkit', 'ms', 'moz', 'o'];
-
       const requestAnimationFrame = window.requestAnimationFrame ||
         window.webkitRequestAnimationFrame ||/* Safari 和 Chrome */
         window.mozRequestAnimationFrame ||/* Firefox */
@@ -217,7 +228,7 @@
         oWrap.style.marginTop = wH / 2 - 180 + 'px';
       }
 
-      // animateFn(oWrap);
+      animateFn(oWrap);
       // 拖拽：三个事件-按下 移动 抬起
       //按下
       document.onmousedown = function (ev) {
