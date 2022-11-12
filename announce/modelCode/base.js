@@ -1,6 +1,13 @@
 import * as THREE from "three";
 import { GLTFLoader } from "jsm/loaders/GLTFLoader.js"; // 轨道控制
 
+function pathResolve(path) {
+    if (location.host !== 'localhost') {
+        path = path.replace(/^\.\.?\//, './');
+    }
+    return path;
+}
+
 
 const imgNames = [
     "1.jpg",
@@ -10,7 +17,7 @@ const imgNames = [
     "5.jpg",
     "love_forever.jpg",
 ]
-const imagesPath = '../images/';
+const imagesPath = pathResolve('../images/');
 // const imgNames = [
 //     "mmexport1667360132074.jpg",
 //     "mmexport1667660783544.jpg",
@@ -114,6 +121,7 @@ function getTexture(path) {
 }
 
 function loadModel(path, loader = GLTFLoader) {
+    path = pathResolve(path);
     var loader = new loader();
     return new Promise((resolve, reject) => {
         loader.load(path, function (gltf) {
@@ -127,6 +135,7 @@ function loadModel(path, loader = GLTFLoader) {
 window.THREE = THREE;
 window.imgNames = imgNames;
 window.imagesPath = imagesPath;
+window.pathResolve = pathResolve;
 window.indexMap = indexMap;
 window.randomNumBoth = randomNumBoth;
 window.getTexture = getTexture;
