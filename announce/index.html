@@ -1,297 +1,288 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html>
 
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdn.bootcdn.net/ajax/libs/pace/1.2.4/pace-theme-default.min.css" rel="stylesheet">
-  <script src="https://cdn.bootcdn.net/ajax/libs/pace/1.2.4/pace.min.js"></script>
-  <title>Sakura</title>
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no" />
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
 </head>
 
 <body>
-  <script src="./js/1-sakura.js"></script>
+    <canvas id="huahua"></canvas>
+    <canvas id="canvas"></canvas>
+</body>
 
-  <style>
-    body,
-    html {
-      font-size: 16px;
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      background-color: #fafafa;
-    }
-
-    #perspective {
-      height: 100%;
-      overflow: hidden;
-    }
-
-    #wrap {
-      width: 10rem /* 160/16 */;
-      /*133:200  4:6  */
-      height: 13.3125rem /* 213/16 */;
-      margin: 0 auto;
-      position: relative;
-
-      /*搭建3D效果必须的两个属性：一个变换风格变3d，一个场景景深800px*/
-      transform-style: preserve-3d;
-      transform: rotateX(346deg) rotateY(0deg);
-    }
-
-    #wrap img {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      border-radius: .0625rem /* 1/16 */;
-      background-color: #fcd;
-      transform: rotateY(0deg) translateZ(0rem /* 0/16 */);
-      /*倒影：朝向 偏移 遮盖*/
-      /*线性渐变(从哪里开始,开始时候的颜色,结束时候的颜色)*/
-      -webkit-box-reflect: below .3125rem /* 5/16 */ -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.5) 100%);
-    }
-
-    #wrap p {
-      width: 75rem /* 1200/16 */;
-      height: 75rem /* 1200/16 */;
-      background: -webkit-radial-gradient(center center, 600px 600px, rgba(244, 23, 234, 0.2), rgba(0, 0, 0, 0));
-      border-radius: 100%;
-      position: absolute;
-      left: 50%;
-      top: 102%;
-      margin-left: -600px;
-      margin-top: -600px;
-      transform: rotateX(90deg);
-      display: none;
-    }
-    .heart {
-      font-size: 9.375rem /* 150/16 */;
-      color: #e00;
-      transform-origin: center;
-      animation: beat .34s infinite alternate;
-      text-align: center;
-      transform: translate(-50%, -50%);
-      position: absolute;
-      left: 50%;
-      bottom: 0;
-
-    }
-    @keyframes beat{
-      to {
-        transform: scale(1.1) translate(-50%, -50%);
-      }
-    }
-  </style>
-  <div id="perspective">
-    <div id="wrap">
-      <img class="img img01" src="./images/mmexport1663510914792.jpg" />
-      <img class="img img02" src="./images/mmexport1664548736165.jpg" />
-      <img class="img img03" src="./images/mmexport1667317709957.jpg" />
-      <img class="img img04" src="./images/mmexport1667660780513.jpg" />
-      <img class="img img05" src="./images/mmexport1667660783544.jpg" />
-      <img class="img img06" src="./images/mmexport1667691877837.jpg" />
-      <!-- <img class="img img07" src="./images/mmexport1664549518756.jpg" />
-      <img class="img img08" src="./images/beauty_202210011622082292.jpg" />
-      <img class="img img09" src="./images/IMG_20220917_120257.jpg" /> -->
-      <p></p>
-    </div>
-    <div class="heart">&#x2665;</div>
-  </div>
-  <script>
-    const defaultXDeg = 346;
-    const intervalTime = 5000;
-    let lastTime = Date.now();
-    const animateType = {
-      cube: false,
-      cloth: false,
-    };
-    let lastDeg = 0;
-    let rotateY = 0;
-    let reqFrame;
-    let rotateObj = {
-      x: false,
-      y: false
-    }; // 用户可以鼠标交互的x或者y动不动的配置
-    function setAnimateType(type) {
-      Object.keys(animateType).forEach(key => {
-        animateType[key] = false;
-      });
-      if (Object.prototype.hasOwnProperty.call(animateType, type)) {
-        animateType[type] = true;
-      }
-    }
-    // 平面带状效果
-    function cloth(pDom) {
-      let oImg = pDom.getElementsByClassName('img');
-      pDom.style.width = '10rem';
-      pDom.style.height = '13.3125rem';
-      let oImgLength = oImg.length;
-      let Deg = 360 / oImgLength;
-      rotateObj.x = true;
-      rotateObj.y = false;
-
-      // 打开前初始化排列动画设置
-      for (let i = 0; i < oImgLength; i++) {
-        oImg[i].style.animation = 'none';
-        oImg[i].style.transform = 'rotateY(' + i * Deg + 'deg) translateZ(21.875rem)';
-        oImg[i].style.transition = 'transform 1s ' + (oImgLength - 1 - i) * 0.1 + 's';
-      }
-      setAnimateType('cloth');
-    }
-    // 魔方效果
-    function cube(pDom) {
-      const wH = 12
-      let oImg = pDom.getElementsByClassName('img');
-      pDom.style.width = pDom.style.height = wH + 'rem';
-      let oImgLength = oImg.length;
-      rotateObj.x = true;
-      rotateObj.y = true;
-      // 打开前初始化排列动画设置
-      for (let i = 0; i < 6; i++) {
-        switch (i) {
-          case 0:
-            oImg[i].style.transform = 'translateZ(' + wH / 2 + 'rem)';
-            break;
-          case 1:
-            oImg[i].style.transform = 'translateX(-' + wH / 2 + 'rem) rotateY(-90deg)';
-            break;
-          case 2:
-            oImg[i].style.transform = 'translateX(' + wH / 2 + 'rem) rotateY(90deg)';
-            break;
-          case 3:
-            oImg[i].style.transform = 'translateY(-' + wH / 2 + 'rem) rotateX(90deg)';
-            break;
-          case 4:
-            oImg[i].style.transform = 'translateY(' + wH / 2 + 'rem) rotateX(-90deg)';
-            break;
-          case 5:
-            oImg[i].style.transform = 'translateZ(-' + wH / 2 + 'rem)';
-            break;
-          default:
-            break;
-        }
-        oImg[i].style.transition = 'transform 1s ' + (oImgLength - 1 - i) * 0.1 + 's';
-        oImg[i].style['-webkit-box-reflect'] = 'inherit';
-      }
-      setAnimateType('cube');
-    }
-    function animateFn(domObj) {
-      if (Date.now() - lastTime >= intervalTime) {
-        lastTime = Date.now();
-        if (animateType.cloth) {
-          cube(domObj);
-        } else if(animateType.cube) {
-          cloth(domObj);
-        }
-      }
-      domObj.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + rotateY + 'deg)';
-      rotateY += 0.2;
-      if (rotateY > 360) {
-        rotateY = 0;
-      }
-      reqFrame = requestAnimationFrame && requestAnimationFrame(animateFn.bind(this, domObj));
-    }
-    function stopAnimate() {
-      cancelAnimationFrame && cancelAnimationFrame(reqFrame);
-    }
-    window.onload = function () {
-      const requestAnimationFrame = window.requestAnimationFrame ||
-        window.webkitRequestAnimationFrame ||/* Safari 和 Chrome */
-        window.mozRequestAnimationFrame ||/* Firefox */
-        window.oRequestAnimationFrame ||/* Opera */
-        window.msRequestAnimationFrame ||/* IE 9 */
-        function (callback) {
-          window.setTimeout(callback, 6000 / 60)
-        };
-      const cancelAnimationFrame = window.cancelAnimationFrame ||
-        window.webkitCancelAnimationFrame ||
-        window.mozCancelAnimationFrame ||
-        window.oCancelAnimationFrame ||
-        window.msCancelAnimationFrame ||
-        function (callback) {
-          window.clearTimeout(callback)
-        };
-      let oWrap = document.getElementById('wrap');
-
-      let nowX, nowY, lastX, lastY, minusX = 0, minusY = 0;
-      let roY = 0, roX = -10;
-      let timer;
-      cloth(oWrap);
-      // cube(oWrap);
-
-      mTop();
-      window.addEventListener('resize', mTop)
-
-      function mTop() {
-        let wH = document.documentElement.clientHeight;
-        oWrap.style.marginTop = wH / 2 - 180 + 'px';
-      }
-
-      animateFn(oWrap);
-      // 拖拽：三个事件-按下 移动 抬起
-      //按下
-      document.onmousedown = function (ev) {
-        stopAnimate();
-        ev = ev || window.event;
-
-        //鼠标按下的时候，给前一点坐标赋值，为了避免第一次相减的时候出错
-        lastX = ev.clientX;
-        lastY = ev.clientY;
-
-        //移动
-        this.onmousemove = function (ev) {
-          ev = ev || window.event;
-
-          clearInterval(timer);
-
-          nowX = ev.clientX; // clientX 鼠标距离页面左边的距离
-          nowY = ev.clientY; // clientY ………………………………顶部………………
-
-          //当前坐标和前一点坐标差值
-          minusX = nowX - lastX;
-          minusY = nowY - lastY;
-
-          //更新wrap的旋转角度，拖拽越快-> minus变化大 -> roY变化大 -> 旋转快
-          rotateY = roY += minusX * 0.2; // roY = roY + minusX*0.2;
-          lastDeg = roX -= minusY * 0.1;
-
-          oWrap.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + roY + 'deg)';
-
-          /*
-          //生成div，让div跟着鼠标动
-          let oDiv = document.createElement('div');
-          oDiv.style.cssText = 'width:5px;height:5px;background:red;position:fixed;left:'+nowX+'px;top:'+nowY+'px';
-          this.body.appendChild(oDiv);
-          */
-
-          //前一点的坐标
-          lastX = nowX;
-          lastY = nowY;
-
-        }
-        //抬起
-        this.onmouseup = function () {
-          this.onmousemove = null;
-          clearInterval(timer);
-          timer = setInterval(function () {
-            minusX *= 0.95;
-            minusY *= 0.95;
-            rotateY = roY += minusX * 0.2; // roY = roY + minusX*0.2;
-            lastDeg = roX -= minusY * 0.1;
-            oWrap.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + roY + 'deg)';
-
-            if (Math.abs(minusX) < 0.1 && Math.abs(minusY) < 0.1) {
-              clearInterval(timer);
-              animateFn(oWrap);
-            }
-            console.log(minusX);
-          }, 13);
-        }
-        return false;
-      }
+<script type="x-shader/x-vertex" id="vertexshader">
+    varying vec2 vUv;
+    void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
     }
   </script>
-</body>
+<script type="x-shader/x-fragment" id="fragmentshader">
+    uniform sampler2D baseTexture;
+    uniform sampler2D bloomTexture;
+    varying vec2 vUv;
+    void main() {
+        gl_FragColor = ( texture2D( baseTexture, vUv ) + vec4( 1.0 ) * texture2D( bloomTexture, vUv ) );
+    }
+  </script>
+  <!-- "three": "./build/three.module.js", -->
+<script type="importmap">
+    {
+        "imports": {
+            "three": "./build/three.module.js",
+            "jsm/": "./jsm/",
+            "helper/": "./helper/",
+            "modelCode/": "./modelCode/"
+        }
+    }
+</script>
+<script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "jsm/controls/OrbitControls.js"; // 轨道控制
+    import { EffectComposer } from "jsm/postprocessing/EffectComposer.js"; // 效果合成器--EffectComposer依赖RenderPass.js、ShaderPass.js、CopyShader.js库
+    import { UnrealBloomPass } from "jsm/postprocessing/UnrealBloomPass.js"; // 虚幻效果通道
+    import { RenderPass } from "jsm/postprocessing/RenderPass.js"; // 渲染通道
+    import { ShaderPass } from "jsm/postprocessing/ShaderPass.js"; // 着色器通道
+    import { FXAAShader } from "jsm/shaders/FXAAShader.js"; // 抗锯齿着色器
+    import TWEEN from "helper/tween.esm.js"; // 抗锯齿着色器
+    import "modelCode/base.js";
+    import "helper/huahua.js";
+    import "modelCode/mofang.js";
+    import "modelCode/loveStar.js";
+    import "modelCode/text.js";
+    import "modelCode/animation.js";
+    let camera,
+        scene,
+        ambientLight,
+        axesHelper,
+        renderer,
+        controls,
+        finalComposer,
+        bloomComposer;
+    const ENTIRE_SCENE = 0,// 全部的，整个的场景
+        BLOOM_SCENE = 1; // 光晕场景
+    const bloomLayer = new THREE.Layers();// 光晕层次-创建一个图层对象
+    bloomLayer.set(BLOOM_SCENE);// 先把光晕层次设置光晕场景的层次1
+    const darkMaterial = new THREE.MeshBasicMaterial({ color: "black" });// 跟辉光光晕有关的变量
+    const materials = {};// 跟辉光光晕有关的变量
+    const params = {
+        exposure: 0,// 暴露
+        bloomStrength: 1.5,// 光晕强度
+        bloomThreshold: 0,// 光晕阈值
+        bloomRadius: 0,// 光晕半径
+    };
+    window.models = {};
+    window.controlWrapper = {
+        tween: {}
+    };
+
+    async function init() {
+        // 场景
+        scene = new THREE.Scene();
+        // 相机
+        camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 100000);
+        camera.position.y = 210;
+        camera.position.z = -644;
+        camera.lookAt(scene.position);
+        initRenderer();
+
+        // 环境光
+        ambientLight = new THREE.AmbientLight('#ffffff', 1) // offline
+        ambientLight.layers.enable(0);
+        ambientLight.layers.enable(1);
+
+        const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+        scene.add( directionalLight );
+
+        controls = new OrbitControls(camera, renderer.domElement);
+        axesHelper = new THREE.AxesHelper(2000);
+        // 绿色是y轴
+        // 红色是x轴
+        // 蓝色是z轴
+
+        const canDom = document.getElementById('canvas');
+        canDom.setAttribute('width', window.innerWidth);
+        canDom.setAttribute('height', window.innerHeight);
+
+        window.addEventListener('resize', (e) => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+
+        window.addEventListener('click', (e) => {
+            onDocumentMouseDown(e, {
+                camera,
+                scene,
+                cb: (object) => {
+                    if (object && object.parent && object.parent.name.startsWith('mofang_')) {
+                        console.log(123);
+                        openRotate(1, models.MofangPhotoPlan);
+                    }
+                }
+            })
+        });
+
+    }
+
+    let bloomPass
+    const initComposer = () => {
+        // 去掉锯齿---1
+        // 通过ShaderPass构造函数把FXAAShader着色器和uniforms构成的对象作为参数，创建一个锯齿通道FXAAShaderPass,然后把锯齿通道插入到composer中。
+        const effectFXAA = new ShaderPass(FXAAShader);
+        effectFXAA.uniforms["resolution"].value.set(
+            0.6 / window.innerWidth,
+            0.6 / window.innerHeight
+        ); // 渲染区域Canvas画布宽高度  不一定是全屏，也可以是区域值
+        effectFXAA.renderToScreen = true;
+        // 去掉锯齿---1
+        const renderScene = new RenderPass(scene, camera);// RenderPass这个通道会在当前场景（scene）和摄像机（camera）的基础上渲染出一个新场景，新建：
+        // 添加光晕效果---2
+        bloomPass = new UnrealBloomPass( // UnrealBloomPass通道可实现一个泛光效果。
+            new THREE.Vector2(window.innerWidth, window.innerHeight),
+            1.5,
+            0.4,
+            0.85
+        );
+        bloomPass.threshold = params.bloomThreshold;
+        bloomPass.strength = params.bloomStrength;
+        bloomPass.radius = params.bloomRadius;
+        // 添加光晕效果---2
+        // 着色器通道容器--放进容器里
+        bloomComposer = new EffectComposer(renderer); // EffectComposer可以理解为着色器通道容器，着色器通道按照先后顺序添加进来并执行
+        bloomComposer.renderToScreen = false;
+        bloomComposer.addPass(renderScene);
+        bloomComposer.addPass(bloomPass); // 添加光晕效果
+        bloomComposer.addPass(effectFXAA);// 去掉锯齿
+        // 着色器通道容器--放进容器里
+        const finalPass = new ShaderPass(
+            new THREE.ShaderMaterial({
+                uniforms: {
+                    baseTexture: { value: null },
+                    bloomTexture: { value: bloomComposer.renderTarget2.texture },
+                },
+                vertexShader: document.getElementById("vertexshader").textContent,
+                fragmentShader: document.getElementById("fragmentshader")
+                    .textContent,
+                defines: {},
+            }),
+            "baseTexture"
+        );
+        finalPass.needsSwap = true;
+        finalComposer = new EffectComposer(renderer);
+        finalComposer.addPass(renderScene);
+        finalComposer.addPass(finalPass);
+        finalComposer.addPass(effectFXAA);
+    };
+
+    
+    function render() {
+        // controls.update();
+        TWEEN.update();
+        MofangPhotoPlan && MofangPhotoPlan.animate();
+        LoveStar && LoveStar.animate();
+
+        scene.traverse(darkenNonBloomed); // 隐藏不需要辉光的物体
+        bloomComposer && bloomComposer.render();
+        scene.traverse(restoreMaterial); // 还原
+        finalComposer && finalComposer.render();
+        requestAnimationFrame(render);
+
+    }
+
+    function initRenderer() {
+        // 渲染器
+        renderer = new THREE.WebGLRenderer({
+            antialias: true, // 抗锯齿
+            canvas: document.getElementById('canvas')
+        });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.toneMapping = THREE.ReinhardToneMapping;
+    }
+
+    function restoreMaterial(obj) {
+        if (obj instanceof THREE.Scene) {
+            obj.background = materials.scene;
+            delete materials.scene;
+            return;
+        }
+        if (materials[obj.uuid]) {
+            obj.material = materials[obj.uuid];
+            delete materials[obj.uuid];
+        }
+    }
+    const bloomIgnore = [];// 跟辉光光晕有关的变量
+    function darkenNonBloomed(obj) {
+        if (obj instanceof THREE.Scene) { // 此处忽略Scene，否则场景背景会被影响
+            materials.scene = obj.background;
+            obj.background = null;
+            return;
+        }
+        if (
+            obj instanceof THREE.Sprite || // 此处忽略Sprite
+            bloomIgnore.includes(obj.type) ||
+            (obj.isMesh && (bloomLayer.test(obj.layers) === false)) // 判断与辉光是否同层
+        ) {
+            materials[obj.uuid] = obj.material;
+            obj.material = darkMaterial;
+        }
+    }
+
+    // 初始化添加模型到场景中
+    async function initModel(param) {
+        const {
+            ambientLight,
+            camera,
+            axesHelper,
+        } = param;
+        const modelToScene = [
+            ambientLight,
+            camera,
+            // axesHelper, // 坐标系
+            LoveStar, // 添加桃心
+            // LoveText, // 文字输入
+            MofangPhotoPlan, // 添加魔方相册
+        ];
+
+        for (const item of modelToScene) {
+            if (item.addTo) {
+                await item.addTo(scene);
+            } else {
+                scene.add(item);
+            }
+        }
+
+
+        models.LoveStar = LoveStar;
+        models.MofangPhotoPlan = MofangPhotoPlan;
+    }
+
+
+    async function main () {
+        await init();
+        initComposer();
+        await initModel({
+            ambientLight,
+            camera,
+            axesHelper,
+        });
+        render();
+        setTimeout(() => {
+            openRotate(1, models.MofangPhotoPlan);
+        }, 2000);
+    }
+    main();
+</script>
 
 </html>

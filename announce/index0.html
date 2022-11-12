@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.bootcdn.net/ajax/libs/pace/1.2.4/pace-theme-default.min.css" rel="stylesheet">
+  <script src="https://cdn.bootcdn.net/ajax/libs/pace/1.2.4/pace.min.js"></script>
+  <title>Sakura</title>
+</head>
+
+<body>
+  <script src="./js/1-sakura.js"></script>
+
+  <style>
+    body,
+    html {
+      font-size: 16px;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: #fafafa;
+    }
+
+    #perspective {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    #wrap {
+      width: 10rem /* 160/16 */;
+      /*133:200  4:6  */
+      height: 13.3125rem /* 213/16 */;
+      margin: 0 auto;
+      position: relative;
+
+      /*搭建3D效果必须的两个属性：一个变换风格变3d，一个场景景深800px*/
+      transform-style: preserve-3d;
+      transform: rotateX(346deg) rotateY(0deg);
+    }
+
+    #wrap img {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      border-radius: .0625rem /* 1/16 */;
+      background-color: #fcd;
+      transform: rotateY(0deg) translateZ(0rem /* 0/16 */);
+      /*倒影：朝向 偏移 遮盖*/
+      /*线性渐变(从哪里开始,开始时候的颜色,结束时候的颜色)*/
+      -webkit-box-reflect: below .3125rem /* 5/16 */ -webkit-linear-gradient(top, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.5) 100%);
+    }
+
+    #wrap p {
+      width: 75rem /* 1200/16 */;
+      height: 75rem /* 1200/16 */;
+      background: -webkit-radial-gradient(center center, 600px 600px, rgba(244, 23, 234, 0.2), rgba(0, 0, 0, 0));
+      border-radius: 100%;
+      position: absolute;
+      left: 50%;
+      top: 102%;
+      margin-left: -600px;
+      margin-top: -600px;
+      transform: rotateX(90deg);
+      display: none;
+    }
+    .heart {
+      font-size: 9.375rem /* 150/16 */;
+      color: #e00;
+      transform-origin: center;
+      animation: beat .34s infinite alternate;
+      text-align: center;
+      transform: translate(-50%, -50%);
+      position: absolute;
+      left: 50%;
+      bottom: 0;
+
+    }
+    @keyframes beat{
+      to {
+        transform: scale(1.1) translate(-50%, -50%);
+      }
+    }
+  </style>
+  <div id="perspective">
+    <div id="wrap">
+      <img class="img img01" src="./images/mmexport1663510914792.jpg" />
+      <img class="img img02" src="./images/mmexport1664548736165.jpg" />
+      <img class="img img03" src="./images/mmexport1667317709957.jpg" />
+      <img class="img img04" src="./images/mmexport1667660780513.jpg" />
+      <img class="img img05" src="./images/mmexport1667660783544.jpg" />
+      <img class="img img06" src="./images/mmexport1667691877837.jpg" />
+      <!-- <img class="img img07" src="./images/mmexport1664549518756.jpg" />
+      <img class="img img08" src="./images/beauty_202210011622082292.jpg" />
+      <img class="img img09" src="./images/IMG_20220917_120257.jpg" /> -->
+      <p></p>
+    </div>
+    <div class="heart">&#x2665;</div>
+  </div>
+  <script>
+    const defaultXDeg = 346;
+    const intervalTime = 5000;
+    let lastTime = Date.now();
+    const animateType = {
+      cube: false,
+      cloth: false,
+    };
+    let lastDeg = 0;
+    let rotateY = 0;
+    let reqFrame;
+    let rotateObj = {
+      x: false,
+      y: false
+    }; // 用户可以鼠标交互的x或者y动不动的配置
+    function setAnimateType(type) {
+      Object.keys(animateType).forEach(key => {
+        animateType[key] = false;
+      });
+      if (Object.prototype.hasOwnProperty.call(animateType, type)) {
+        animateType[type] = true;
+      }
+    }
+    // 平面带状效果
+    function cloth(pDom) {
+      let oImg = pDom.getElementsByClassName('img');
+      pDom.style.width = '10rem';
+      pDom.style.height = '13.3125rem';
+      let oImgLength = oImg.length;
+      let Deg = 360 / oImgLength;
+      rotateObj.x = true;
+      rotateObj.y = false;
+
+      // 打开前初始化排列动画设置
+      for (let i = 0; i < oImgLength; i++) {
+        oImg[i].style.animation = 'none';
+        oImg[i].style.transform = 'rotateY(' + i * Deg + 'deg) translateZ(21.875rem)';
+        oImg[i].style.transition = 'transform 1s ' + (oImgLength - 1 - i) * 0.1 + 's';
+      }
+      setAnimateType('cloth');
+    }
+    // 魔方效果
+    function cube(pDom) {
+      const wH = 12
+      let oImg = pDom.getElementsByClassName('img');
+      pDom.style.width = pDom.style.height = wH + 'rem';
+      let oImgLength = oImg.length;
+      rotateObj.x = true;
+      rotateObj.y = true;
+      // 打开前初始化排列动画设置
+      for (let i = 0; i < 6; i++) {
+        switch (i) {
+          case 0:
+            oImg[i].style.transform = 'translateZ(' + wH / 2 + 'rem)';
+            break;
+          case 1:
+            oImg[i].style.transform = 'translateX(-' + wH / 2 + 'rem) rotateY(-90deg)';
+            break;
+          case 2:
+            oImg[i].style.transform = 'translateX(' + wH / 2 + 'rem) rotateY(90deg)';
+            break;
+          case 3:
+            oImg[i].style.transform = 'translateY(-' + wH / 2 + 'rem) rotateX(90deg)';
+            break;
+          case 4:
+            oImg[i].style.transform = 'translateY(' + wH / 2 + 'rem) rotateX(-90deg)';
+            break;
+          case 5:
+            oImg[i].style.transform = 'translateZ(-' + wH / 2 + 'rem)';
+            break;
+          default:
+            break;
+        }
+        oImg[i].style.transition = 'transform 1s ' + (oImgLength - 1 - i) * 0.1 + 's';
+        oImg[i].style['-webkit-box-reflect'] = 'inherit';
+      }
+      setAnimateType('cube');
+    }
+    function animateFn(domObj) {
+      if (Date.now() - lastTime >= intervalTime) {
+        lastTime = Date.now();
+        if (animateType.cloth) {
+          cube(domObj);
+        } else if(animateType.cube) {
+          cloth(domObj);
+        }
+      }
+      domObj.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + rotateY + 'deg)';
+      rotateY += 0.2;
+      if (rotateY > 360) {
+        rotateY = 0;
+      }
+      reqFrame = requestAnimationFrame && requestAnimationFrame(animateFn.bind(this, domObj));
+    }
+    function stopAnimate() {
+      cancelAnimationFrame && cancelAnimationFrame(reqFrame);
+    }
+    window.onload = function () {
+      const requestAnimationFrame = window.requestAnimationFrame ||
+        window.webkitRequestAnimationFrame ||/* Safari 和 Chrome */
+        window.mozRequestAnimationFrame ||/* Firefox */
+        window.oRequestAnimationFrame ||/* Opera */
+        window.msRequestAnimationFrame ||/* IE 9 */
+        function (callback) {
+          window.setTimeout(callback, 6000 / 60)
+        };
+      const cancelAnimationFrame = window.cancelAnimationFrame ||
+        window.webkitCancelAnimationFrame ||
+        window.mozCancelAnimationFrame ||
+        window.oCancelAnimationFrame ||
+        window.msCancelAnimationFrame ||
+        function (callback) {
+          window.clearTimeout(callback)
+        };
+      let oWrap = document.getElementById('wrap');
+
+      let nowX, nowY, lastX, lastY, minusX = 0, minusY = 0;
+      let roY = 0, roX = -10;
+      let timer;
+      cloth(oWrap);
+      // cube(oWrap);
+
+      mTop();
+      window.addEventListener('resize', mTop)
+
+      function mTop() {
+        let wH = document.documentElement.clientHeight;
+        oWrap.style.marginTop = wH / 2 - 180 + 'px';
+      }
+
+      animateFn(oWrap);
+      // 拖拽：三个事件-按下 移动 抬起
+      //按下
+      document.onmousedown = function (ev) {
+        stopAnimate();
+        ev = ev || window.event;
+
+        //鼠标按下的时候，给前一点坐标赋值，为了避免第一次相减的时候出错
+        lastX = ev.clientX;
+        lastY = ev.clientY;
+
+        //移动
+        this.onmousemove = function (ev) {
+          ev = ev || window.event;
+
+          clearInterval(timer);
+
+          nowX = ev.clientX; // clientX 鼠标距离页面左边的距离
+          nowY = ev.clientY; // clientY ………………………………顶部………………
+
+          //当前坐标和前一点坐标差值
+          minusX = nowX - lastX;
+          minusY = nowY - lastY;
+
+          //更新wrap的旋转角度，拖拽越快-> minus变化大 -> roY变化大 -> 旋转快
+          rotateY = roY += minusX * 0.2; // roY = roY + minusX*0.2;
+          lastDeg = roX -= minusY * 0.1;
+
+          oWrap.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + roY + 'deg)';
+
+          /*
+          //生成div，让div跟着鼠标动
+          let oDiv = document.createElement('div');
+          oDiv.style.cssText = 'width:5px;height:5px;background:red;position:fixed;left:'+nowX+'px;top:'+nowY+'px';
+          this.body.appendChild(oDiv);
+          */
+
+          //前一点的坐标
+          lastX = nowX;
+          lastY = nowY;
+
+        }
+        //抬起
+        this.onmouseup = function () {
+          this.onmousemove = null;
+          clearInterval(timer);
+          timer = setInterval(function () {
+            minusX *= 0.95;
+            minusY *= 0.95;
+            rotateY = roY += minusX * 0.2; // roY = roY + minusX*0.2;
+            lastDeg = roX -= minusY * 0.1;
+            oWrap.style.transform = 'rotateX(' + (rotateObj.y ? lastDeg : defaultXDeg) + 'deg) rotateY(' + roY + 'deg)';
+
+            if (Math.abs(minusX) < 0.1 && Math.abs(minusY) < 0.1) {
+              clearInterval(timer);
+              animateFn(oWrap);
+            }
+            console.log(minusX);
+          }, 13);
+        }
+        return false;
+      }
+    }
+  </script>
+</body>
+
+</html>
