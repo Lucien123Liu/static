@@ -16,6 +16,18 @@ const imgNames = [
     "4.jpg",
     "5.jpg",
     "love_forever.jpg",
+    "7.jpg",
+    "8.jpg",
+    "9.jpg",
+    "10.jpg",
+    "11.jpg",
+    "12.jpg",
+    "13.jpg",
+    "14.jpg",
+    "15.jpg",
+    "16.jpg",
+    "17.jpg",
+    "18.jpg",
 ]
 const imagesPath = pathResolve('../images/');
 // const imgNames = [
@@ -108,6 +120,16 @@ function onDocumentMouseDown(event, param) {
     }
 }
 
+function onWindowResize(event, param) {
+    const {
+        camera,
+        renderer,
+    } = param;
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+}
+
 function randomNumBoth(Min, Max, fl) {
     const Range = Max - Min;
     const Rand = Math.random();
@@ -141,3 +163,4 @@ window.randomNumBoth = randomNumBoth;
 window.getTexture = getTexture;
 window.loadModel = loadModel;
 window.onDocumentMouseDown = onDocumentMouseDown;
+window.onWindowResize = onWindowResize;

@@ -18,6 +18,7 @@
 <body>
     <canvas id="huahua"></canvas>
     <canvas id="canvas"></canvas>
+    <audio id="aLittleOneDay" autoplay muted></audio>
 </body>
 
 <script type="x-shader/x-vertex" id="vertexshader">
@@ -61,6 +62,7 @@
     import "modelCode/loveStar.js";
     import "modelCode/text.js";
     import "modelCode/animation.js";
+    window.wrapper = {};
     let camera,
         scene,
         ambientLight,
@@ -91,6 +93,8 @@
         scene = new THREE.Scene();
         // 相机
         camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 100000);
+        // camera.position.y = 250;
+        // camera.position.z = -844;
         camera.position.y = 210;
         camera.position.z = -644;
         camera.lookAt(scene.position);
@@ -98,8 +102,6 @@
 
         // 环境光
         ambientLight = new THREE.AmbientLight('#ffffff', 1) // offline
-        ambientLight.layers.enable(0);
-        ambientLight.layers.enable(1);
 
         const directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
         scene.add( directionalLight );
@@ -115,28 +117,36 @@
         canDom.setAttribute('height', window.innerHeight);
 
         window.addEventListener('resize', (e) => {
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+            onWindowResize(e, {
+                camera,
+                renderer
+            });
         });
 
         window.addEventListener('click', (e) => {
+            const aLittleOneDay = document.getElementById('aLittleOneDay');
+            aLittleOneDay.muted = false;
+            playAudio();
             onDocumentMouseDown(e, {
                 camera,
                 scene,
-                cb: (object) => {
-                    if (object && object.parent && object.parent.name.startsWith('mofang_')) {
-                        console.log(123);
-                        openRotate(1, models.MofangPhotoPlan);
-                    }
-                }
+                // cb: (object) => {
+                //     if (object && object.parent && object.parent.name.startsWith('mofang_')) {
+                //         moreMofangOpenRotate(1, models.THREEMofang)
+                //     }
+                // }
             })
         });
 
     }
+    
 
     let bloomPass
-    const initComposer = () => {
+    const initComposer = (enableShows) => {
+        enableShows.forEach(meshObj => {
+            (meshObj.Mesh || meshObj.Meshs) &&
+            (meshObj.Mesh || meshObj.Meshs).layers.enable(1);
+        });
         // 去掉锯齿---1
         // 通过ShaderPass构造函数把FXAAShader着色器和uniforms构成的对象作为参数，创建一个锯齿通道FXAAShaderPass,然后把锯齿通道插入到composer中。
         const effectFXAA = new ShaderPass(FXAAShader);
@@ -187,9 +197,10 @@
 
     
     function render() {
-        // controls.update();
+        controls.update();
         TWEEN.update();
-        MofangPhotoPlan && MofangPhotoPlan.animate();
+        models.THREEMofang &&
+        models.THREEMofang.forEach(mofang => mofang.animate());
         LoveStar && LoveStar.animate();
 
         scene.traverse(darkenNonBloomed); // 隐藏不需要辉光的物体
@@ -197,7 +208,6 @@
         scene.traverse(restoreMaterial); // 还原
         finalComposer && finalComposer.render();
         requestAnimationFrame(render);
-
     }
 
     function initRenderer() {
@@ -246,13 +256,20 @@
             camera,
             axesHelper,
         } = param;
+        const THREEMofang = (new Array(3).fill(1)).map((item, index, arr) => {
+            const instance = new MofangPhoto();
+            instance.imgWH = 100 + index * 50;
+            instance.imgIndex = index * 6;
+            return instance;
+        });
         const modelToScene = [
             ambientLight,
             camera,
             // axesHelper, // 坐标系
             LoveStar, // 添加桃心
             // LoveText, // 文字输入
-            MofangPhotoPlan, // 添加魔方相册
+            // MofangPhotoPlan, // 添加魔方相册
+            ...THREEMofang
         ];
 
         for (const item of modelToScene) {
@@ -265,23 +282,46 @@
 
 
         models.LoveStar = LoveStar;
-        models.MofangPhotoPlan = MofangPhotoPlan;
-    }
+        models.THREEMofang = THREEMofang;
+    } 
 
 
     async function main () {
         await init();
-        initComposer();
         await initModel({
             ambientLight,
             camera,
             axesHelper,
         });
+        initComposer([
+            ...models.THREEMofang
+        ]);
         render();
-        setTimeout(() => {
-            openRotate(1, models.MofangPhotoPlan);
-        }, 2000);
     }
+    function playAudio () {
+        const aLittleOneDay = document.getElementById('aLittleOneDay');
+        if (aLittleOneDay.src) {
+            aLittleOneDay.play && aLittleOneDay.play();
+            return;
+        }
+        aLittleOneDay.src = './audios/aLittleOneDay.mp3';
+        aLittleOneDay.loop = true;
+        aLittleOneDay.autoplay = true;
+        aLittleOneDay.currentTime = 1;
+        aLittleOneDay.addEventListener('canplay', () => {
+            console.log(123);
+            aLittleOneDay.play && aLittleOneDay.play();
+            moreMofangOpenRotate(1, models.THREEMofang);
+        }, false);
+    }
+    wrapper.camera = camera;
+    wrapper.scene = scene;
+    wrapper.ambientLight = ambientLight;
+    wrapper.axesHelper = axesHelper;
+    wrapper.renderer = renderer;
+    wrapper.controls = controls;
+    wrapper.finalComposer = finalComposer;
+    wrapper.bloomComposer = bloomComposer;
     main();
 </script>
 

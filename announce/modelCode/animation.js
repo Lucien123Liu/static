@@ -69,14 +69,22 @@ function openUpClose(step, meshObj) {
 
 const posHelper = {
     translateNum: 0,
-    step: 0
-};
-function openRotate(step, meshObj) {
-    const mesh = meshObj.Mesh || meshObj.Meshs;
+    step: 0,
+    instance: null,
 
-    if (posHelper.step === step) {
+};
+function openRotate(step, meshObj, {
+    goon = true,
+    translateNum = 1.5
+}) {
+    const mesh = meshObj.Mesh || meshObj.Meshs;
+    posHelper.translateNum = 0;
+    if (posHelper.step === step &&
+        posHelper.instance === meshObj
+    ) {
         step = 2;
     }
+    posHelper.instance = meshObj;
     posHelper.step = step || 0;
     switch (step) {
         case 1:
@@ -84,8 +92,8 @@ function openRotate(step, meshObj) {
             controlWrapper.tween.one =
                 new TWEEN.Tween(posHelper)
                     .to({
-                        translateNum: 1.5,
-                        breathSpeed: 6
+                        translateNum,
+                        breathSpeed: 6,
                     }, 500)
                     .easing(TWEEN.Easing.Bounce.Out)
                     .onUpdate(() => {
@@ -107,26 +115,32 @@ function openRotate(step, meshObj) {
                                     break;
                             }
                         });
-                        models.LoveStar.Mesh.scale.set(posHelper.breathSpeed, posHelper.breathSpeed, posHelper.breathSpeed);
+                        if (goon) {
+                            models.LoveStar.Mesh.scale.set(posHelper.breathSpeed, posHelper.breathSpeed, posHelper.breathSpeed);
+                        }
                     })
                     .onComplete(() => {
                         console.log('打开盒子完毕，转起来了，请注意！');
-                        models.LoveStar.breathSpeed = posHelper.breathSpeed;
-                        models.LoveStar.playAndType('beatRotate');
-                        models.MofangPhotoPlan.rotate();
+                        meshObj.rotate();
+                        if (goon) {
+                            models.LoveStar.breathSpeed = posHelper.breathSpeed;
+                            models.LoveStar.playAndType('beatRotate');
+                            // models.THREEMofang &&
+                            //     models.THREEMofang.forEach(mofang => mofang.rotate());
+                        }
                     })
                     .start();
             break;
         case 2:
             // 关上盒子
-            posHelper.translateNum = 1.5;
+            posHelper.translateNum = translateNum;
             posHelper.breathSpeed = 6;
             models.LoveStar.changeAnimateState();
             controlWrapper.tween.one =
                 new TWEEN.Tween(posHelper)
                     .to({
                         translateNum: 0,
-                        breathSpeed: 0
+                        breathSpeed: 0,
                     }, 500)
                     .easing(TWEEN.Easing.Bounce.Out)
                     .onUpdate(() => {
@@ -159,5 +173,34 @@ function openRotate(step, meshObj) {
             break;
     }
 }
+
+
+async function moreMofangOpenRotate(step, instances) {
+    switch (step) {
+        case 1:
+            for (let index = instances.length - 1; index >= 0; index--) {
+                const instance = instances[index];
+                instance.Meshs.rotateY(index * 45);
+                instance.Meshs.rotateZ(index * 45);
+                instance.Meshs.rotateX(index * 45);
+                await new Promise((resolve) => {
+                    openRotate(step, instance, {
+                        goon: index === 0,
+                        translateNum: 1.5 + (index + 1) * 0.2
+                    })
+                    setTimeout(() => {
+                        resolve();
+                    }, 200);
+                });
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
+
 window.openUpClose = openUpClose;
 window.openRotate = openRotate;
+window.moreMofangOpenRotate = moreMofangOpenRotate;
